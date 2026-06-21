@@ -2,10 +2,12 @@ import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
+import { useSession } from '../lib/AuthContext'
 import { lookupGenre } from '../lib/genres'
 import './Shelf.css'
 
 export default function Shelf() {
+  const session = useSession()
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -132,7 +134,10 @@ export default function Shelf() {
       transition={{ duration: 0.25 }}
     >
       <header className="shelf-header">
-        <h1>Tisha's Library</h1>
+        <div>
+          <h1>Tisha's Library</h1>
+          <p className="shelf-user">{session.user.user_metadata?.full_name || session.user.email}</p>
+        </div>
         <button className="logout-btn" onClick={handleLogout}>
           Log out
         </button>
