@@ -8,6 +8,8 @@ export default function Login() {
   const [error, setError] = useState(null)
   const [message, setMessage] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
   const [isForgot, setIsForgot] = useState(false)
 
@@ -27,7 +29,15 @@ export default function Login() {
         setMessage('Check your email for a password reset link!')
       }
     } else if (isSignUp) {
-      const { error } = await supabase.auth.signUp({ email, password })
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+          },
+        },
+      })
       if (error) {
         setError(error.message)
       } else {
@@ -76,6 +86,26 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
+          {isSignUp && (
+            <div className="login-name-row">
+              <input
+                type="text"
+                placeholder="First name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+                autoComplete="given-name"
+              />
+              <input
+                type="text"
+                placeholder="Last name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+                autoComplete="family-name"
+              />
+            </div>
+          )}
           <input
             type="email"
             placeholder="Email"
