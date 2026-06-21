@@ -132,7 +132,7 @@ export default function Shelf() {
       transition={{ duration: 0.25 }}
     >
       <header className="shelf-header">
-        <h1>My Library</h1>
+        <h1>Tisha's Library</h1>
         <button className="logout-btn" onClick={handleLogout}>
           Log out
         </button>

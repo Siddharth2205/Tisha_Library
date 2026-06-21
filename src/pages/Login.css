@@ -13,6 +13,13 @@
   text-align: center;
 }
 
+.login-logo {
+  width: 90px;
+  height: 90px;
+  border-radius: 20px;
+  margin-bottom: 0.75rem;
+}
+
 .login-title {
   font-family: 'Georgia', serif;
   font-size: 2rem;
@@ -23,7 +30,46 @@
 .login-subtitle {
   color: #8b7355;
   font-size: 0.95rem;
-  margin: 0 0 2rem;
+  margin: 0 0 1.5rem;
+}
+
+.login-google {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.8rem;
+  border: 1.5px solid #d4c5b0;
+  border-radius: 10px;
+  background: #fff;
+  color: #2c1810;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.login-google:hover {
+  border-color: #8b7355;
+  background: #f5f0e8;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+  color: #b0a08a;
+  font-size: 0.85rem;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #d4c5b0;
 }
 
 .login-form {
@@ -69,4 +115,41 @@
   color: #c0392b;
   font-size: 0.85rem;
   margin: 0;
+}
+
+.login-message {
+  color: #27ae60;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.login-forgot {
+  margin-top: 0.75rem;
+}
+
+.login-forgot button {
+  background: none;
+  border: none;
+  color: #8b7355;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.login-toggle {
+  margin-top: 1.25rem;
+  color: #8b7355;
+  font-size: 0.9rem;
+}
+
+.login-toggle button {
+  background: none;
+  border: none;
+  color: #2c1810;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 0.9rem;
+  padding: 0;
 }

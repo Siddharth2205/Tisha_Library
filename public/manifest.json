@@ -1,6 +1,6 @@
 {
-  "name": "My Library",
-  "short_name": "Library",
+  "name": "Tisha's Library",
+  "short_name": "Tisha's Library",
   "description": "Your personal book collection",
   "start_url": "/",
   "display": "standalone",

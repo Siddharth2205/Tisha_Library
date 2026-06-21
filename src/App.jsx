@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import Shelf from './pages/Shelf'
 import AddBook from './pages/AddBook'
 import BookView from './pages/BookView'
+import ResetPassword from './pages/ResetPassword'
 
 function ProtectedRoute({ children }) {
   const session = useSession()
@@ -56,6 +57,10 @@ function AppRoutes() {
                 <AddBook />
               </ProtectedRoute>
             }
+          />
+          <Route
+            path="/reset-password"
+            element={<ResetPassword />}
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
