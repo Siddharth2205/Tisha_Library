@@ -10,6 +10,13 @@ export default function ResetPassword() {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
+  const isInvite = window.location.hash.includes('type=invite')
+    || sessionStorage.getItem('auth_type') === 'invite'
+
+  if (window.location.hash.includes('type=invite')) {
+    sessionStorage.setItem('auth_type', 'invite')
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setError(null)
@@ -28,6 +35,7 @@ export default function ResetPassword() {
       return
     }
 
+    sessionStorage.removeItem('auth_type')
     await supabase.auth.signOut()
     navigate('/login')
   }
@@ -36,13 +44,17 @@ export default function ResetPassword() {
     <div className="login-page">
       <div className="login-card">
         <img src="/apple-touch-icon.png" alt="Tisha's Library" className="login-logo" />
-        <h1 className="login-title">New Password</h1>
-        <p className="login-subtitle">Enter your new password below</p>
+        <h1 className="login-title">{isInvite ? 'Welcome!' : 'New Password'}</h1>
+        <p className="login-subtitle">
+          {isInvite
+            ? 'Set a password to get started'
+            : 'Enter your new password below'}
+        </p>
 
         <form onSubmit={handleSubmit} className="login-form">
           <input
             type="password"
-            placeholder="New password"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -60,7 +72,7 @@ export default function ResetPassword() {
           />
           {error && <p className="login-error">{error}</p>}
           <button type="submit" disabled={loading}>
-            {loading ? 'Updating…' : 'Update Password'}
+            {loading ? 'Saving…' : (isInvite ? 'Set Password' : 'Update Password')}
           </button>
         </form>
       </div>

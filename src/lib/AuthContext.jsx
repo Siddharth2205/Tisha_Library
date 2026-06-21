@@ -2,7 +2,15 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 
 const AuthContext = createContext(null)
-const RecoveryContext = createContext(false)
+const NeedsPasswordContext = createContext(false)
+
+function checkHashForType() {
+  const hash = window.location.hash
+  if (hash.includes('type=invite') || hash.includes('type=recovery')) {
+    return true
+  }
+  return false
+}
 
 function clearAuthTokensFromUrl() {
   if (window.location.hash && window.location.hash.includes('access_token')) {
@@ -20,7 +28,7 @@ function clearAuthTokensFromUrl() {
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(undefined)
-  const [isRecovery, setIsRecovery] = useState(false)
+  const [needsPassword, setNeedsPassword] = useState(() => checkHashForType())
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -32,7 +40,7 @@ export function AuthProvider({ children }) {
       (event, session) => {
         setSession(session)
         if (event === 'PASSWORD_RECOVERY') {
-          setIsRecovery(true)
+          setNeedsPassword(true)
         }
         clearAuthTokensFromUrl()
       }
@@ -47,9 +55,9 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={session}>
-      <RecoveryContext.Provider value={isRecovery}>
+      <NeedsPasswordContext.Provider value={needsPassword}>
         {children}
-      </RecoveryContext.Provider>
+      </NeedsPasswordContext.Provider>
     </AuthContext.Provider>
   )
 }
@@ -58,6 +66,6 @@ export function useSession() {
   return useContext(AuthContext)
 }
 
-export function useIsRecovery() {
-  return useContext(RecoveryContext)
+export function useNeedsPassword() {
+  return useContext(NeedsPasswordContext)
 }

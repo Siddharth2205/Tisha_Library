@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AnimatePresence, LayoutGroup } from 'framer-motion'
-import { AuthProvider, useSession, useIsRecovery } from './lib/AuthContext'
+import { AuthProvider, useSession, useNeedsPassword } from './lib/AuthContext'
 import Login from './pages/Login'
 import Shelf from './pages/Shelf'
 import AddBook from './pages/AddBook'
@@ -9,16 +9,16 @@ import ResetPassword from './pages/ResetPassword'
 
 function ProtectedRoute({ children }) {
   const session = useSession()
-  const isRecovery = useIsRecovery()
+  const needsPassword = useNeedsPassword()
   if (!session) return <Navigate to="/login" replace />
-  if (isRecovery) return <Navigate to="/reset-password" replace />
+  if (needsPassword) return <Navigate to="/reset-password" replace />
   return children
 }
 
 function PublicRoute({ children }) {
   const session = useSession()
-  const isRecovery = useIsRecovery()
-  if (session && isRecovery) return <Navigate to="/reset-password" replace />
+  const needsPassword = useNeedsPassword()
+  if (session && needsPassword) return <Navigate to="/reset-password" replace />
   if (session) return <Navigate to="/" replace />
   return children
 }
