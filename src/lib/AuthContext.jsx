@@ -42,6 +42,9 @@ export function AuthProvider({ children }) {
         if (event === 'PASSWORD_RECOVERY') {
           setNeedsPassword(true)
         }
+        if (event === 'SIGNED_OUT') {
+          setNeedsPassword(false)
+        }
         clearAuthTokensFromUrl()
       }
     )
