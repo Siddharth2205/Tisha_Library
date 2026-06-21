@@ -28,7 +28,8 @@ export default function ResetPassword() {
       return
     }
 
-    navigate('/')
+    await supabase.auth.signOut()
+    navigate('/login')
   }
 
   return (
