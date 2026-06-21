@@ -4,6 +4,20 @@ import { supabase } from './supabase'
 const AuthContext = createContext(null)
 const RecoveryContext = createContext(false)
 
+function clearAuthTokensFromUrl() {
+  if (window.location.hash && window.location.hash.includes('access_token')) {
+    window.history.replaceState(null, '', window.location.pathname)
+  }
+  const params = new URLSearchParams(window.location.search)
+  if (params.has('code') || params.has('token')) {
+    params.delete('code')
+    params.delete('token')
+    params.delete('type')
+    const clean = params.toString()
+    window.history.replaceState(null, '', window.location.pathname + (clean ? '?' + clean : ''))
+  }
+}
+
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(undefined)
   const [isRecovery, setIsRecovery] = useState(false)
@@ -11,6 +25,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
+      clearAuthTokensFromUrl()
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -19,6 +34,7 @@ export function AuthProvider({ children }) {
         if (event === 'PASSWORD_RECOVERY') {
           setIsRecovery(true)
         }
+        clearAuthTokensFromUrl()
       }
     )
 
