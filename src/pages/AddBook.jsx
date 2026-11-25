@@ -31,7 +31,7 @@ export default function AddBook() {
 
     try {
       const res = await fetch(
-        `https://openlibrary.org/search.json?title=${encodeURIComponent(title.trim())}&limit=6`
+        `https://openlibrary.org/search.json?title=${encodeURIComponent(title.trim())}&limit=20&fields=key,title,author_name,cover_i,subject`
       )
       const data = await res.json()
       const results = data.docs
