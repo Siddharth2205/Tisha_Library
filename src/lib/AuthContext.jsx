@@ -1,8 +1,6 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
-
-const AuthContext = createContext(null)
-const NeedsPasswordContext = createContext(false)
+import { AuthContext, NeedsPasswordContext } from './authContexts'
 
 function checkHashForType() {
   const hash = window.location.hash
@@ -63,12 +61,4 @@ export function AuthProvider({ children }) {
       </NeedsPasswordContext.Provider>
     </AuthContext.Provider>
   )
-}
-
-export function useSession() {
-  return useContext(AuthContext)
-}
-
-export function useNeedsPassword() {
-  return useContext(NeedsPasswordContext)
 }

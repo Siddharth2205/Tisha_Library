@@ -1,11 +1,26 @@
+import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AnimatePresence, LayoutGroup } from 'framer-motion'
-import { AuthProvider, useSession, useNeedsPassword } from './lib/AuthContext'
+import { AuthProvider } from './lib/AuthContext'
+import { useSession, useNeedsPassword } from './lib/authContexts'
 import Login from './pages/Login'
 import Shelf from './pages/Shelf'
-import AddBook from './pages/AddBook'
-import BookView from './pages/BookView'
-import ResetPassword from './pages/ResetPassword'
+
+// Split out of the main bundle: BookView pulls in the drawing canvas, which is heavy
+const loadAddBook = () => import('./pages/AddBook')
+const loadBookView = () => import('./pages/BookView')
+const AddBook = lazy(loadAddBook)
+const BookView = lazy(loadBookView)
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
+
+// Suspense per lazy route, inside AnimatePresence, so a pending chunk never hides the outgoing page
+function Lazy({ children }) {
+  return (
+    <Suspense fallback={<div className="loading-screen">Loading…</div>}>
+      {children}
+    </Suspense>
+  )
+}
 
 function ProtectedRoute({ children }) {
   const session = useSession()
@@ -25,6 +40,16 @@ function PublicRoute({ children }) {
 
 function AppRoutes() {
   const location = useLocation()
+  const session = useSession()
+
+  // Once signed in, fetch the lazy pages in the background so navigation (and the
+  // shared cover animation from Shelf to BookView) doesn't wait on a network request
+  useEffect(() => {
+    if (session) {
+      loadAddBook()
+      loadBookView()
+    }
+  }, [session])
 
   return (
     <LayoutGroup>
@@ -50,7 +75,7 @@ function AppRoutes() {
             path="/book/:id"
             element={
               <ProtectedRoute>
-                <BookView />
+                <Lazy><BookView /></Lazy>
               </ProtectedRoute>
             }
           />
@@ -58,13 +83,13 @@ function AppRoutes() {
             path="/add"
             element={
               <ProtectedRoute>
-                <AddBook />
+                <Lazy><AddBook /></Lazy>
               </ProtectedRoute>
             }
           />
           <Route
             path="/reset-password"
-            element={<ResetPassword />}
+            element={<Lazy><ResetPassword /></Lazy>}
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

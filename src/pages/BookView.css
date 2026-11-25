@@ -259,3 +259,9 @@
   font-size: 0.9rem;
   padding: 2rem 0;
 }
+
+.book-action-error {
+  color: #c0392b;
+  font-size: 0.85rem;
+  margin: 0 0 1rem;
+}

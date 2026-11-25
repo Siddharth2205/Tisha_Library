@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
-import { useSession } from '../lib/AuthContext'
+import { useSession } from '../lib/authContexts'
 import MediaSection from '../components/MediaSection'
 import './BookView.css'
 
@@ -25,39 +25,43 @@ export default function BookView() {
   // Active tab
   const [tab, setTab] = useState('writing')
 
-  useEffect(() => {
-    loadBook()
-    loadHighlights()
-  }, [id])
+  // Error from an action (add/delete) — shown inline, doesn't replace the page
+  const [actionError, setActionError] = useState(null)
 
-  async function loadBook() {
-    const { data, error } = await supabase
+  useEffect(() => {
+    let cancelled = false
+
+    supabase
       .from('books')
       .select('*')
       .eq('id', id)
       .single()
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) setError('Book not found')
+        else setBook(data)
+        setLoading(false)
+      })
 
-    if (error) {
-      setError('Book not found')
-    } else {
-      setBook(data)
-    }
-    setLoading(false)
-  }
-
-  async function loadHighlights() {
-    const { data } = await supabase
+    supabase
       .from('highlights')
       .select('*')
       .eq('book_id', id)
       .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (!cancelled && data) setHighlights(data)
+      })
 
-    if (data) setHighlights(data)
-  }
+    return () => { cancelled = true }
+  }, [id])
 
   async function addEntry() {
     if (!entryText.trim()) return
-    if (entryText.length > 5000 || entryNote.length > 1000) return
+    if (entryText.length > 5000 || entryNote.length > 1000) {
+      setActionError('Entry is too long (max 5000 characters, note max 1000).')
+      return
+    }
+    setActionError(null)
     setSubmitting(true)
 
     const row = {
@@ -74,7 +78,9 @@ export default function BookView() {
       .select()
       .single()
 
-    if (!error && data) {
+    if (error) {
+      setActionError(`Could not save: ${error.message}`)
+    } else if (data) {
       setHighlights((prev) => [data, ...prev])
       setEntryText('')
       setEntryNote('')
@@ -82,14 +88,36 @@ export default function BookView() {
     setSubmitting(false)
   }
 
-  async function deleteEntry(entryId) {
-    setHighlights((prev) => prev.filter((h) => h.id !== entryId))
-    await supabase.from('highlights').delete().eq('id', entryId)
+  async function deleteEntry(entry) {
+    setHighlights((prev) => prev.filter((h) => h.id !== entry.id))
+    const { error } = await supabase.from('highlights').delete().eq('id', entry.id)
+    if (error) {
+      // Put back only this entry, so other adds/deletes made meanwhile are kept
+      setHighlights((prev) => sortNewestFirst([...prev, entry]))
+      setActionError(`Could not delete: ${error.message}`)
+    }
   }
 
   async function deleteBook() {
     if (!window.confirm(`Delete "${book.title}" and all its entries?`)) return
-    await supabase.from('books').delete().eq('id', id)
+    setActionError(null)
+
+    // Note the file paths before the rows go away
+    const { data: photos } = await supabase
+      .from('photos')
+      .select('image_url')
+      .eq('book_id', id)
+
+    const { error } = await supabase.from('books').delete().eq('id', id)
+    if (error) {
+      setActionError(`Could not delete book: ${error.message}`)
+      return
+    }
+
+    // Only after the book is gone, clean up its photos/drawings so files aren't orphaned
+    if (photos?.length) {
+      await supabase.storage.from('photos').remove(photos.map((p) => p.image_url))
+    }
     navigate('/')
   }
 
@@ -136,6 +164,8 @@ export default function BookView() {
           {book.author && <p className="book-author">{book.author}</p>}
         </div>
       </div>
+
+      {actionError && <p className="book-action-error" role="alert">{actionError}</p>}
 
       <div className="book-tabs">
         <button
@@ -222,7 +252,7 @@ export default function BookView() {
                   </div>
                   <button
                     className="entry-delete"
-                    onClick={() => deleteEntry(h.id)}
+                    onClick={() => deleteEntry(h)}
                     aria-label="Delete"
                   >
                     ×
@@ -237,4 +267,8 @@ export default function BookView() {
       {tab === 'media' && <MediaSection bookId={id} />}
     </motion.div>
   )
+}
+
+function sortNewestFirst(items) {
+  return [...items].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 }

@@ -29,7 +29,7 @@ export default function Login() {
         setMessage('Check your email for a password reset link!')
       }
     } else if (isSignUp) {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -40,9 +40,11 @@ export default function Login() {
       })
       if (error) {
         setError(error.message)
-      } else {
-        setMessage('Account created! You can now sign in.')
+      } else if (!data.session) {
+        // Email confirmation is on in Supabase: no session until they click the link
+        setMessage('Account created! Check your email to confirm, then sign in.')
       }
+      // With a session, AuthProvider picks it up and PublicRoute redirects to the shelf
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {

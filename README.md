@@ -6,7 +6,7 @@ A private digital library web app for collecting books, journaling favorite line
 
 ### 1. Supabase
 
-Create a Supabase project and run the SQL migration (see `schema.sql` or the project brief) to create the `books`, `highlights`, and `photos` tables with RLS policies.
+Create a Supabase project with `books`, `highlights`, and `photos` tables and RLS policies so each user can only read/write their own rows (`user_id = auth.uid()`). There is no `schema.sql` in this repo yet — see the improvement notes.
 
 Create two storage buckets in the Supabase dashboard:
 - **covers** — Public

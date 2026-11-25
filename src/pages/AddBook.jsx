@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { useSession } from '../lib/AuthContext'
+import { useSession } from '../lib/authContexts'
 import { detectGenre } from '../lib/genres'
 import './AddBook.css'
 
@@ -27,14 +27,16 @@ export default function AddBook() {
     if (!title.trim()) return
     setSearching(true)
     setSearched(true)
+    setError(null)
     setSearchResults([])
 
     try {
       const res = await fetch(
         `https://openlibrary.org/search.json?title=${encodeURIComponent(title.trim())}&limit=20&fields=key,title,author_name,cover_i,subject`
       )
+      if (!res.ok) throw new Error(`Open Library returned ${res.status}`)
       const data = await res.json()
-      const results = data.docs
+      const results = (data.docs || [])
         .filter((doc) => doc.cover_i && Number.isInteger(doc.cover_i))
         .slice(0, 6)
         .map((doc) => ({
@@ -43,7 +45,7 @@ export default function AddBook() {
           author: String(doc.author_name?.[0] || '').slice(0, 300),
           coverId: doc.cover_i,
           coverUrl: `https://covers.openlibrary.org/b/id/${Number(doc.cover_i)}-L.jpg`,
-          genre: detectGenre(doc.subject) || detectGenre(doc.subject_facet) || null,
+          genre: detectGenre(doc.subject) || null,
         }))
       setSearchResults(results)
     } catch {

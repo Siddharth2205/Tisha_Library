@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
-import { useSession } from '../lib/AuthContext'
+import { useSession } from '../lib/authContexts'
 import { lookupGenre } from '../lib/genres'
 import './Shelf.css'
 
@@ -20,23 +20,19 @@ export default function Shelf() {
   const [detectProgress, setDetectProgress] = useState('')
 
   useEffect(() => {
-    loadBooks()
-  }, [])
-
-  async function loadBooks() {
-    setLoading(true)
-    const { data, error } = await supabase
+    let cancelled = false
+    supabase
       .from('books')
       .select('*')
       .order('created_at', { ascending: false })
-
-    if (error) {
-      setError(error.message)
-    } else {
-      setBooks(data)
-    }
-    setLoading(false)
-  }
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) setError(error.message)
+        else setBooks(data)
+        setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [])
 
   const genres = useMemo(() => {
     const set = new Set()
@@ -101,7 +97,8 @@ export default function Shelf() {
 
       const genre = await lookupGenre(book.title, book.author)
       if (genre) {
-        await supabase.from('books').update({ genre }).eq('id', book.id)
+        const { error } = await supabase.from('books').update({ genre }).eq('id', book.id)
+        if (error) continue
         setBooks((prev) =>
           prev.map((b) => (b.id === book.id ? { ...b, genre } : b))
         )

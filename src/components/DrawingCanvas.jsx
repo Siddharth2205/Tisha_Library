@@ -17,7 +17,10 @@ export default function DrawingCanvas({ onSave, onCancel }) {
       const res = await fetch(dataUrl)
       const blob = await res.blob()
       await onSave(blob)
-    } catch {
+    } catch (err) {
+      alert('Could not save drawing: ' + (err?.message || err))
+    } finally {
+      // Re-enable Save if the upload failed and the canvas is still open
       setSaving(false)
     }
   }
